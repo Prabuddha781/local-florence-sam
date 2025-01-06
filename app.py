@@ -1,6 +1,7 @@
 import os
 from typing import Tuple, Optional
 
+import time
 import logging
 import cv2
 import numpy as np
@@ -65,6 +66,7 @@ def process_image(
     
     texts = [prompt.strip() for prompt in text_input.split(",")]
 
+    start = time.time()
     detections_list = []
     for text in texts:
         _, result = run_florence_inference(
@@ -75,6 +77,7 @@ def process_image(
             task=FLORENCE_OPEN_VOCABULARY_DETECTION_TASK,
             text=text
         )
+        print(f"Time taken for florence: {time.time() - start}")
         detections = sv.Detections.from_lmm(
             lmm=sv.LMM.FLORENCE_2,
             result=result,
@@ -82,6 +85,7 @@ def process_image(
         )
         detections = run_sam_inference(SAM_IMAGE_MODEL, image_input, detections)
         detections_list.append(detections)
+        print(f"Time taken for sam: {time.time() - start}")
     
     detections = sv.Detections.merge(detections_list)
     detections = run_sam_inference(SAM_IMAGE_MODEL, image_input, detections)

@@ -3,11 +3,12 @@ from typing import Union, Any, Tuple, Dict
 from unittest.mock import patch
 
 import torch
+from torch import nn
 from PIL import Image
 from transformers import AutoModelForCausalLM, AutoProcessor
 from transformers.dynamic_module_utils import get_imports
 
-FLORENCE_CHECKPOINT = "microsoft/Florence-2-base"
+FLORENCE_CHECKPOINT = "microsoft/Florence-2-large"
 FLORENCE_OBJECT_DETECTION_TASK = '<OD>'
 FLORENCE_DETAILED_CAPTION_TASK = '<MORE_DETAILED_CAPTION>'
 FLORENCE_CAPTION_TO_PHRASE_GROUNDING_TASK = '<CAPTION_TO_PHRASE_GROUNDING>'
@@ -48,7 +49,7 @@ def run_florence_inference(
     generated_ids = model.generate(
         input_ids=inputs["input_ids"],
         pixel_values=inputs["pixel_values"],
-        max_new_tokens=1024,
+        max_new_tokens=4096,
         num_beams=3
     )
     generated_text = processor.batch_decode(
