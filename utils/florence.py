@@ -30,7 +30,7 @@ def load_florence_model(
 ) -> Tuple[Any, Any]:
     with patch("transformers.dynamic_module_utils.get_imports", fixed_get_imports):
         model = AutoModelForCausalLM.from_pretrained(
-            checkpoint, trust_remote_code=True, device_map="auto").to(device).eval()
+            checkpoint, trust_remote_code=True).to(device).eval()
         processor = AutoProcessor.from_pretrained(
             checkpoint, trust_remote_code=True)
         return model, processor
