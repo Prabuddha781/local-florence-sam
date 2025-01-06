@@ -52,6 +52,7 @@ def annotate_image(image, detections):
     output_image = MASK_ANNOTATOR.annotate(output_image, detections)
     output_image = BOX_ANNOTATOR.annotate(output_image, detections)
     output_image = LABEL_ANNOTATOR.annotate(output_image, detections)
+    print(output_image)
     return output_image
 
 
