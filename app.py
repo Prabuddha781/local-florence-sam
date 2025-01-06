@@ -89,7 +89,7 @@ def process_image(
 
 
 if __name__ == "__main__":
-    image = Image.open("img.jpeg")
+    image = Image.open("img.png").convert("RGB")
     text = "human, road, sidewalk, car, grass, fence"
     process_image(image, text)
     
