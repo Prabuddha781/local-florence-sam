@@ -1,7 +1,6 @@
 import os
 from typing import Tuple, Optional
 
-import time
 import logging
 import cv2
 import numpy as np
@@ -10,6 +9,7 @@ import torch
 from PIL import Image
 from tqdm import tqdm
 from utils.video import generate_unique_name, create_directory, delete_directory
+import time
 
 from utils.florence import load_florence_model, run_florence_inference, \
     FLORENCE_DETAILED_CAPTION_TASK, \
@@ -53,7 +53,6 @@ def annotate_image(image, detections):
     output_image = MASK_ANNOTATOR.annotate(output_image, detections)
     output_image = BOX_ANNOTATOR.annotate(output_image, detections)
     output_image = LABEL_ANNOTATOR.annotate(output_image, detections)
-    output_image.save("output.png")
     return output_image
 
 
@@ -69,6 +68,7 @@ def process_image(
     start = time.time()
     detections_list = []
     for text in texts:
+        start = time.time()
         _, result = run_florence_inference(
             model=FLORENCE_MODEL,
             processor=FLORENCE_PROCESSOR,
@@ -77,6 +77,7 @@ def process_image(
             task=FLORENCE_OPEN_VOCABULARY_DETECTION_TASK,
             text=text
         )
+        start_2 = time.time()
         print(f"Time taken for florence: {time.time() - start}")
         detections = sv.Detections.from_lmm(
             lmm=sv.LMM.FLORENCE_2,
@@ -85,30 +86,33 @@ def process_image(
         )
         detections = run_sam_inference(SAM_IMAGE_MODEL, image_input, detections)
         detections_list.append(detections)
-        print(f"Time taken for sam: {time.time() - start}")
-    
+        print(f"Time taken for sam: {time.time() - start_2}")
+    second_start = time.time()
     detections = sv.Detections.merge(detections_list)
     detections = run_sam_inference(SAM_IMAGE_MODEL, image_input, detections)
+    print("Time taken for sam detections:",  time.time() - second_start)
     return annotate_image(image_input, detections), None
 
 
-if __name__ == "__main__":
-    image = Image.open("img.png").convert("RGB")
-    text = "human, road, sidewalk, car, grass, fence"
+text = "human, road, sidewalk, car, grass, fence"
 
-    video_path = "vid.MOV"
-    cap = cv2.VideoCapture(video_path)
-    if not cap.isOpened():
-        print(f"Error: Cannot open video file {video_path}")
-        exit()
+video_path = "IMG_3264 4.mp4"
+cap = cv2.VideoCapture(video_path)
+if not cap.isOpened():
+    print(f"Error: Cannot open video file {video_path}")
+    exit()
 
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame = Image.fromarray(frame_rgb)
+ms = 16000
+while True:
+    cap.set(cv2.CAP_PROP_POS_MSEC, ms)
+    
+    ret, frame = cap.read()
+    if not ret:
+        break
+    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    frame = Image.fromarray(frame_rgb)
 
-        img, _ = process_image(frame, text)
-        if img:
-            img.show()
+    img, _ = process_image(frame, text)
+    if img:
+        img.show()
+    ms += 100
