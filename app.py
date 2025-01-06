@@ -91,5 +91,20 @@ def process_image(
 if __name__ == "__main__":
     image = Image.open("img.png").convert("RGB")
     text = "human, road, sidewalk, car, grass, fence"
-    process_image(image, text)
-    
+
+    video_path = "vid.MOV"
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        print(f"Error: Cannot open video file {video_path}")
+        exit()
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame = Image.fromarray(frame_rgb)
+
+        img, _ = process_image(frame, text)
+        if img:
+            img.show()
